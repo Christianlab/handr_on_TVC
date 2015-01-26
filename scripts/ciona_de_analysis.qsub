@@ -1,0 +1,46 @@
+#!/bin/bash -login
+
+#PBS -l walltime=48:00:00,nodes=1:ppn=8,mem=64GB
+#PBS -N ciona_for_Wei_khgene2012
+#PBS -A ged
+#PBS -M elijahlowe@gmail.com
+#PBS -m abe
+
+module load TopHat/2.0.8b
+module load SAMTools
+module load bwa
+module load HTSeq/0.6.1
+module load PySAM/0.6
+
+WRKSP='/mnt/home/loweelij/Wei/de_analysis_kh_2012/'
+
+#reference='/mnt/home/loweelij/Wei/KH.KHGene.2013.fasta' 
+#reference='/mnt/home/loweelij/Wei/Ciona_intestinalis.KH.dna.toplevel.fa'
+reference='/mnt/home/loweelij/Wei/kh2012.fa'
+#reference='/mnt/home/loweelij/Wei/KH.KHGene.2012.fasta'
+#gff='/mnt/home/loweelij/Wei/KH.KHGene.2013.gff3' 
+#gff='/mnt/home/loweelij/Wei/Ciona_intestinalis.KH.77.gtf'
+gff='/mnt/home/loweelij/Wei/KH.KHGene.2013.gff3'
+
+sample[1]=handrdnfgfr15hpf1_GGACCC_L006
+sample[2]=handrdnfgfr15hpf2_CCTCGG_L006
+sample[3]=handrlaz15hpf1_AAGGGA_L006
+sample[4]=handrlaz15hpf2_TTCAGC_L006
+sample[5]=handrnoggin15hpf1_CCTTCA_L006
+sample[6]=handrnoggin15hpf2_AAGACG_L006
+#rm -rf ${WRKSP}
+mkdir ${WRKSP}
+cd ${WRKSP}
+#gunzip -c ../Ciona_intestinalis.KH.77.gtf.gz > Ciona_intestinalis.KH.77.gtf
+
+bwa index ${reference}
+for i in 1 2 3 4 5 6
+do
+ #   bwa mem ${reference} -t ${PBS_NUM_PPN} /mnt/home/loweelij/Wei/round1/${sample[i]}_R1_001.fastq.gz > ${sample[i]}.sam
+ #   samtools view -Sb ${sample[i]}.sam > ${sample[i]}.unsorted.bam
+ #   samtools sort ${sample[i]}.unsorted.bam ${sample[i]}
+ #   samtools index ${sample[i]}.bam
+    htseq-count --format=bam --stranded=no --type=CDS --order=pos --idattr=Parent ${sample[i]}.bam $gff > ${sample[i]}_htseq_counts.txt
+done
+
+qstat -f ${PBS_JOBID}
